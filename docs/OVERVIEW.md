@@ -2,7 +2,7 @@
 
 ## What This Experiment Demonstrates
 
-This experimental project shows how to **transform Tyk Gateway into an MCP (Model Context Protocol) server**, demonstrating the Four Pillars of AI-Ready APIs by making SentraIP threat intelligence accessible to AI models like Claude through natural language conversations.
+This experimental project shows how to **transform Tyk Gateway into an MCP (Model Context Protocol) server**, demonstrating the Four Pillars of AI-Ready APIs (OAS - OpenAPI Specification,OAuth - Open Authorization,OTEL - OpenTelemetry,MCP - Model Context Protocol) by making SentraIP threat intelligence accessible to AI models like Claude through natural language conversations.
 
 ## The Concept Being Tested
 
