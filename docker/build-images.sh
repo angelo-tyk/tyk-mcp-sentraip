@@ -10,3 +10,8 @@ docker tag tyk-gateway-mcp:latest gcr.io/${PROJECT_ID}/tyk-gateway-mcp:latest
 echo "Building Claude MCP Client..."
 docker build -f docker/Dockerfile.mcp-client -t claude-mcp-client:latest .
 docker tag claude-mcp-client:latest gcr.io/${PROJECT_ID}/claude-mcp-client:latest
+echo "Pushing to Google Container Registry..."
+docker push gcr.io/${PROJECT_ID}/tyk-gateway-mcp:latest
+docker push gcr.io/${PROJECT_ID}/claude-mcp-client:latest
+
+echo "Build and push complete!"
