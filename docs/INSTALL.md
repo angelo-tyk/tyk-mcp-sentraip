@@ -78,8 +78,8 @@ gcloud container clusters get-credentials your-cluster-name --zone your-zone
 ```bash
 git clone https://github.com/yourusername/tyk-mcp-sentraip.git
 cd tyk-mcp-sentraip
-chmod +x scripts/build-and-deploy.sh
-./scripts/build-and-deploy.sh
+chmod +x scripts/build.sh
+./scripts/build.sh
 ```
 
 ### Option 2: Manual Step-by-Step
