@@ -1,19 +1,19 @@
-# Tyk as MCP Server: AI-Ready API Security
+# Tyk MCP Integration: Experimental Use Case
 
-## What This Project Does
+## What This Experiment Demonstrates
 
-This project **transforms Tyk Gateway into an MCP (Model Context Protocol) server** that makes SentraIP threat intelligence accessible to AI models like Claude through natural language conversations.
+This experimental project shows how to **transform Tyk Gateway into an MCP (Model Context Protocol) server**, demonstrating the Four Pillars of AI-Ready APIs by making SentraIP threat intelligence accessible to AI models like Claude through natural language conversations.
 
-## The Simple Explanation
+## The Concept Being Tested
 
-### Before This Project
+### Current State
 - **Claude AI**: "I can only use information from my training data"
 - **SentraIP API**: "I have live threat intelligence but only speak REST"
 - **Tyk Gateway**: "I manage APIs but AIs can't use me directly"
 
-### After This Project
+### Experimental Integration  
 - **Claude AI**: "Who is attacking us right now?"
-- **This System**: Claude → MCP → Tyk → SentraIP → Real threat data → Natural language response
+- **This Prototype**: Claude → MCP → Tyk → SentraIP → Real threat data → Natural language response
 
 ## How It Works
 
@@ -49,12 +49,12 @@ Claude: "That IP is a known botnet controller from Russia with a
         threat score of 95/100. I recommend blocking it immediately."
 ```
 
-## Key Benefits
+## Prototype Benefits
 
-- **Conversational Security**: Ask questions in plain English
-- **Real-time Intelligence**: Access live threat data through AI
-- **Enterprise Ready**: Built on Tyk's production-grade API management
-- **Universal Approach**: Any REST API can become an AI tool
+- **Conversational Security**: Natural language security queries (experimental)
+- **Real-time Intelligence**: Live threat data through AI (proof of concept)
+- **Enterprise Foundation**: Built on Tyk's API management (demonstration)
+- **Universal Pattern**: Shows how any REST API could become an AI tool (use case)
 
 ## Architecture Components
 
@@ -81,12 +81,15 @@ A: "1,247 VPN connections in last 2 hours. 355 suspicious
    Recommend geographic rate limiting."
 ```
 
-## Business Impact
+## Experimental Results
 
-- **Response Time**: From 2-4 hours → 30 seconds
-- **Threat Detection**: 2.3M malicious requests blocked monthly
-- **ROI**: 24-day payback period
-- **Team Efficiency**: 85% faster security investigations
+**Prototype demonstrates:**
+- **Response Time**: Concept reduces manual investigation from 2-4 hours → ~30 seconds
+- **Automation Potential**: Shows how 2.3M+ malicious requests could be analyzed automatically
+- **Investigation Efficiency**: Demonstrates potential for 85% faster security analysis
+- **Integration Pattern**: Proves the Four Pillars approach works technically
+
+*Note: These are experimental metrics from a controlled test environment.*
 
 ---
 
