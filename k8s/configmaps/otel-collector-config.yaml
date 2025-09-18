@@ -1,1 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: tyk
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'tyk-gateway'
+            static_configs:
+            - targets: ['tyk-gateway:8080']
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      resource:
+        attributes:
+          - key: service.name
+            value: tyk-mcp-gateway
+            action: upsert
+          - key: service.version
+            value: v1.0.0
+            action: upsert
+          - key: deployment.environment
+            value: production
+            action: upsert
+      attributes:
+        actions:
+          - key: tyk.api_id
+            action: upsert
+            from_attribute: http.route
+          - key: mcp.tool_name
+            action: upsert
+            from_attribute: mcp.tool
+          - key: sentraip.risk_score
+            action: upsert
+            from_attribute: sentraip.score
+          - key: claude.model
+            action: upsert  
+            from_attribute: claude.model_name
+          - key: oauth.token_valid
+            action: upsert
+            from_attribute: oauth.token_injected
+    
+    exporters:
+      jaeger:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        const_labels:
+          service: tyk-mcp-gateway
+          version: v1.0.0
+      logging:
+        loglevel: info
+        sampling_initial: 5
+        sampling_thereafter: 200
+    
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch, resource, attributes]
+          exporters: [jaeger, logging]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [batch, resource]
+          exporters: [prometheus, logging]
 
