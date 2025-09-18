@@ -94,6 +94,15 @@ Source the environment:
 source .env
 ```
 
+Export the variables:
+```
+export CLAUDE_API_KEY
+export SENTRAIP_CLIENT_ID
+export SENTRAIP_CLIENT_SECRET 
+export SENTRAIP_API_URL
+export CLAUDE_API_URL
+```
+
 ### 3. Verify Prerequisites
 
 ```bash
