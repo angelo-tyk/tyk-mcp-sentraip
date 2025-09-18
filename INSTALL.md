@@ -97,7 +97,7 @@ source .env
 ### 3. Verify Prerequisites
 
 ```bash
-# Check kubectl connection
+# Check kubectl connection (if in GCP make sure you are authenticated already - gcloud auth login)
 kubectl cluster-info
 
 # Check Docker
