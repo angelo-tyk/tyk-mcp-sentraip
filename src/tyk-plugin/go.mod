@@ -1,4 +1,4 @@
-module github.com/yourusername/tyk-mcp-sentraip/tyk-plugin
+module github.com/angelo-tyk/tyk-mcp-sentraip/tyk-plugin
 
 go 1.25.1
 
