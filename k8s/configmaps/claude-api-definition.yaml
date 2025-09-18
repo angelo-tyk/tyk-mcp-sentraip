@@ -1,1 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-api-definition
+  namespace: tyk
+data:
+  claude-api.json: |
+    {
+      "name": "Claude AI via Tyk MCP",
+      "slug": "claude-ai-mcp",
+      "api_id": "claude-ai-mcp", 
+      "org_id": "1",
+      "use_keyless": false,
+      "use_standard_auth": true,
+      "auth": {
+        "auth_header_name": "Authorization"
+      },
+      "proxy": {
+        "listen_path": "/claude/",
+        "target_url": "https://api.anthropic.com",
+        "strip_listen_path": true
+      },
+      "version_data": {
+        "not_versioned": true,
+        "versions": {
+          "Default": {
+            "use_extended_paths": true,
+            "extended_paths": {
+              "transform_headers": [
+                {
+                  "add_headers": {
+                    "anthropic-version": "2023-06-01",
+                    "x-api-key": "{{.auth_token}}"
+                  },
+                  "path": "/v1/messages",
+                  "method": "POST"
+                }
+              ],
+              "validate_json": [
+                {
+                  "path": "/v1/messages",
+                  "method": "POST",
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "model": {"type": "string"},
+                      "messages": {"type": "array"},
+                      "max_tokens": {"type": "number"}
+                    },
+                    "required": ["model", "messages", "max_tokens"]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "custom_middleware": {
+        "pre": [
+          {
+            "name": "tyk_otel_pre_middleware",
+            "path": "/opt/tyk-gateway/plugins/tyk_otel_enhancer.so",
+            "require_session": true
+          }
+        ],
+        "post": [
+          {
+            "name": "tyk_otel_post_middleware", 
+            "path": "/opt/tyk-gateway/plugins/tyk_otel_enhancer.so",
+            "require_session": false
+          }
+        ]
+      },
+      "tags": ["claude", "ai", "mcp"],
+      "active": true
+    }
 
