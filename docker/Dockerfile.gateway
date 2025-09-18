@@ -1,0 +1,35 @@
+FROM tykio/tyk-gateway:v5.0
+
+# Install build dependencies
+USER root
+RUN apk add --no-cache gcc musl-dev
+
+# Create plugins directory
+RUN mkdir -p /opt/tyk-gateway/plugins
+RUN mkdir -p /opt/tyk-gateway/middleware
+RUN mkdir -p /opt/tyk-gateway/apps
+
+# Copy Go plugins (pre-built)
+COPY src/tyk-plugin/*.so /opt/tyk-gateway/plugins/
+
+# Copy configuration files
+COPY k8s/configmaps/tyk-gateway-config.yaml /opt/tyk-gateway/tyk.conf
+
+# Set permissions
+RUN chown -R tyk:tyk /opt/tyk-gateway/plugins
+RUN chown -R tyk:tyk /opt/tyk-gateway/middleware
+RUN chown -R tyk:tyk /opt/tyk-gateway/apps
+RUN chmod +x /opt/tyk-gateway/plugins/*.so
+
+# Switch back to tyk user
+USER tyk
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/hello || exit 1
+
+# Start command
+CMD ["/opt/tyk-gateway/tyk", "--conf=/opt/tyk-gateway/tyk.conf"]
