@@ -1,37 +1,3 @@
-Important Adaptations Needed
-Before deploying, you'll need to customize several files:
-
-Replace placeholders in all YAML files:
-
-${PROJECT_ID} → your actual GCP project ID
-your-gcp-project → your project name
-yourusername → your GitHub username
-
-
-Update Go modules in go.mod files:
-
-go   module github.com/yourusername/tyk-mcp-sentraip/claude-mcp-client
-
-Configure secrets properly:
-
-bash   cp .env.template .env
-   # Edit .env with your actual API keys
-
-Test locally first:
-
-bash   # Build the plugin locally
-   cd src/tyk-plugin && ./build.sh
-   
-   # Test the Go client
-   cd ../claude-mcp-client && go run main.go
-Security Considerations
-
-Never commit actual API keys to Git
-Use Kubernetes secrets or external secret management
-Rotate credentials regularly
-Monitor API usage and costs
-Review the OAuth2 configuration for production
-
 
 # Installation Guide
 
@@ -300,8 +266,46 @@ After installation, see:
 
 ## Support
 
-This is experimental code. For questions or issues:
+This is experimental code. It is not supported. For questions or issues:
 
 1. Check the troubleshooting section above
 2. Review the GitHub Issues page
-3. For production implementations, consult with Tyk's professional services team
+
+# Warning
+
+Project was created on Google Cloud GKE but can be easily adapted to any platform.
+
+Important Adaptations Needed
+Before deploying, you'll need to customize several files:
+
+Replace placeholders in all YAML files:
+
+${PROJECT_ID} → your actual GCP project ID
+your-gcp-project → your project name
+yourusername → your GitHub username
+
+
+Update Go modules in go.mod files:
+
+go   module github.com/yourusername/tyk-mcp-sentraip/claude-mcp-client
+
+Configure secrets properly:
+
+bash   cp .env.template .env
+   # Edit .env with your actual API keys
+
+Test locally first:
+
+bash   # Build the plugin locally
+   cd src/tyk-plugin && ./build.sh
+   
+   # Test the Go client
+   cd ../claude-mcp-client && go run main.go
+Security Considerations
+
+Never commit actual API keys to Git
+Use Kubernetes secrets or external secret management
+Rotate credentials regularly
+Monitor API usage and costs
+Review the OAuth2 configuration for production
+
