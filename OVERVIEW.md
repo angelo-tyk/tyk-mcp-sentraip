@@ -28,35 +28,35 @@ The Tyk MCP SentraIP system implements a modern, cloud-native architecture that 
                            │                    │
                            ▼                    ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        Load Balancer                               │
-│                    (Kubernetes Service)                           │
+│                        Load Balancer                                │
+│                    (Kubernetes Service)                             │
 └─────────────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      Tyk Gateway Cluster                          │
-│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐        │
-│  │ Tyk Gateway   │  │ Tyk Gateway   │  │ Tyk Gateway   │        │
-│  │   Instance    │  │   Instance    │  │   Instance    │        │
-│  │               │  │               │  │               │        │
-│  │ Go Plugins:   │  │ Go Plugins:   │  │ Go Plugins:   │        │
-│  │ • OAuth       │  │ • OAuth       │  │ • OAuth       │        │
-│  │ • OTEL        │  │ • OTEL        │  │ • OTEL        │        │
-│  │ • MCP Tools   │  │ • MCP Tools   │  │ • MCP Tools   │        │
-│  └───────────────┘  └───────────────┘  └───────────────┘        │
+│                      Tyk Gateway Cluster                            │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐            │
+│  │ Tyk Gateway   │  │ Tyk Gateway   │  │ Tyk Gateway   │            │
+│  │   Instance    │  │   Instance    │  │   Instance    │            │
+│  │               │  │               │  │               │            │
+│  │ Go Plugins:   │  │ Go Plugins:   │  │ Go Plugins:   │            │
+│  │ • OAuth       │  │ • OAuth       │  │ • OAuth       │            │
+│  │ • OTEL        │  │ • OTEL        │  │ • OTEL        │            │
+│  │ • MCP Tools   │  │ • MCP Tools   │  │ • MCP Tools   │            │
+│  └───────────────┘  └───────────────┘  └───────────────┘            │
 └─────────────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     Service Mesh Layer                            │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐ │
-│  │ Claude MCP      │    │ Redis Cache     │    │ OTEL Collector │ │
-│  │ Client Service  │    │ (Sessions &     │    │ (Traces &      │ │
-│  │                 │    │  Token Cache)   │    │  Metrics)      │ │
-│  │ • Chat API      │    │                 │    │                │ │
-│  │ • Tool Executor │    │                 │    │                │ │
-│  │ • Context Mgmt  │    │                 │    │                │ │
-│  └─────────────────┘    └─────────────────┘    └─────────────────┘ │
+│                     Service Mesh Layer                              │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐  │
+│  │ Claude MCP      │    │ Redis Cache     │    │ OTEL Collector  │  │
+│  │ Client Service  │    │ (Sessions &     │    │ (Traces &       │  │
+│  │                 │    │  Token Cache)   │    │  Metrics)       │  │
+│  │ • Chat API      │    │                 │    │                 │  │
+│  │ • Tool Executor │    │                 │    │                 │  │
+│  │ • Context Mgmt  │    │                 │    │                 │  │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
