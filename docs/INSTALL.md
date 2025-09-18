@@ -14,7 +14,6 @@ Before you begin, ensure you have:
 - Go 1.21+ for building the plugin
 - Claude API key from Anthropic
 - SentraIP API credentials
-- Tyk Gateway deployed on K8S
 
 ## Environment Setup (from GCP terminal)
 
