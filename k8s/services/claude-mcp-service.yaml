@@ -1,1 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-mcp-client
+  namespace: tyk
+  labels:
+    app: claude-mcp-client
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 9001
+    targetPort: 9001
+    protocol: TCP
+    name: grpc
+  selector:
+    app: claude-mcp-client
 
