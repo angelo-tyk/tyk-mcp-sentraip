@@ -58,7 +58,7 @@ This guide provides detailed step-by-step instructions for installing and config
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/tyk-mcp-sentraip.git
+git clone https://github.com/angelo-tyk/tyk-mcp-sentraip.git
 cd tyk-mcp-sentraip
 ```
 
