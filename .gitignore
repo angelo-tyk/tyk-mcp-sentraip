@@ -1,0 +1,37 @@
+# Binaries
+*.so
+*.exe
+tyk-gateway-mcp
+claude-mcp-client
+
+# Go
+vendor/
+*.mod
+*.sum
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Kubernetes secrets (use environment variables instead)
+k8s/secrets/*.yaml
+
+# Build artifacts
+build/
+dist/
