@@ -14,12 +14,15 @@ Before you begin, ensure you have:
 - Go 1.21+ for building the plugin
 - Claude API key from Anthropic
 - SentraIP API credentials
+- Tyk Gateway deployed on K8S
 
-## Environment Setup
+## Environment Setup (from GCP terminal)
 
 1. **Set required environment variables:**
 ```bash
-export PROJECT_ID="your-gcp-project-id"
+# Get the currently active project ID
+export PROJECT_ID=$(gcloud config get-value project)
+# Get the api key for Claude and SentraIP
 export CLAUDE_API_KEY="your-claude-api-key"
 export SENTRAIP_CLIENT_ID="your-sentraip-client-id"
 export SENTRAIP_CLIENT_SECRET="your-sentraip-client-secret"
