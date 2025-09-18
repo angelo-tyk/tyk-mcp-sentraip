@@ -1,1 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tyk-gateway
+  namespace: tyk
+  labels:
+    app: tyk-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tyk-gateway
+  template:
+    metadata:
+      labels:
+        app: tyk-gateway
+    spec:
+      containers:
+      - name: tyk-gateway
+        image: gcr.io/${PROJECT_ID}/tyk-gateway-mcp:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: SENTRAIP_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: sentraip-oauth-secret
+              key: client-id
+        - name: SENTRAIP_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sentraip-oauth-secret
+              key: client-secret
+        - name: TYK_GW_COPROCESS_GRPC_SERVER
+          value: "tcp://claude-mcp-client:9001"
+        - name: TYK_GW_OPENTELEMETRY_ENABLED
+          value: "true"
+        - name: TYK_GW_OPENTELEMETRY_ENDPOINT
+          value: "http://otel-collector:4317"
+        - name: TYK_GW_STORAGE_HOST
+          value: "tyk-redis"
+        - name: TYK_GW_STORAGE_PORT
+          value: "6379"
+        volumeMounts:
+        - name: tyk-config
+          mountPath: /opt/tyk-gateway/tyk.conf
+          subPath: tyk.conf
+        - name: apps-config
+          mountPath: /opt/tyk-gateway/apps
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /hello
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /hello
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: tyk-config
+        configMap:
+          name: tyk-gateway-config
+      - name: apps-config
+        configMap:
+          name: sentraip-api-definition
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-api-config
+  namespace: tyk
+data:
+  claude-api.json: |
+    # Claude API definition from claude-api-definition.yaml
 
