@@ -1,1 +1,50 @@
-
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tyk-gateway-config
+  namespace: tyk
+data:
+  tyk.conf: |
+    {
+      "listen_port": 8080,
+      "secret": "change-me-in-production",
+      "template_path": "/opt/tyk-gateway/templates",
+      "middleware_path": "/opt/tyk-gateway/middleware",
+      "use_db_app_configs": false,
+      "app_path": "/opt/tyk-gateway/apps/",
+      "storage": {
+        "type": "redis",
+        "host": "tyk-redis",
+        "port": 6379,
+        "database": 0,
+        "optimisation_max_idle": 2000,
+        "optimisation_max_active": 4000
+      },
+      "enable_analytics": true,
+      "analytics_config": {
+        "type": "json",
+        "purge_delay": 10,
+        "ignored_ips": []
+      },
+      "opentelemetry": {
+        "enabled": true,
+        "endpoint": "http://otel-collector:4317",
+        "headers": {},
+        "connection_timeout": 1,
+        "resource_name": "tyk-gateway-mcp",
+        "span_processor_type": "batch",
+        "context_propagation": "tracecontext"
+      },
+      "coprocess_options": {
+        "enable_coprocess": true,
+        "coprocess_grpc_server": "tcp://claude-mcp-client:9001"
+      },
+      "enable_custom_domains": true,
+      "enable_jsvm": true,
+      "optimisations_use_async_session_write": true,
+      "enable_non_transactional_rate_limiter": true,
+      "enable_sentinel_rate_limiter": false,
+      "max_idle_connections_per_host": 500,
+      "max_idle_connections": 1000,
+      "close_connections": false
+    }
