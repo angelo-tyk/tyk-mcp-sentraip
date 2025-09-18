@@ -73,7 +73,7 @@ cp .env.template .env
 Edit `.env` with your specific values:
 
 ```bash
-# Google Cloud Project (if using GCP)
+# Google Cloud Project (if using GCP you can find it via  "gcloud config get-value project")
 PROJECT_ID=your-gcp-project-id
 
 # Claude API Configuration
