@@ -96,12 +96,14 @@ var MCPToolsRegistry = map[string]MCPTool{
     },
 }
 
+func main() {}
+
 // MCPToolsMiddleware handles MCP tools listing and execution
 func MCPToolsMiddleware(rw http.ResponseWriter, r *http.Request) {
     session := ctx.GetSession(r)
     spec := ctx.GetDefinition(r)
     
-    logger.WithFields(logrus.Fields{
+    log.Get().WithFields(logrus.Fields{
         "method": r.Method,
         "path":   r.RequestURI,
         "api_id": spec.APIID,
@@ -139,16 +141,16 @@ func handleToolsList(rw http.ResponseWriter, r *http.Request, session *user.Sess
     rw.WriteHeader(http.StatusOK)
     json.NewEncoder(rw).Encode(response)
     
-    logger.WithFields(logrus.Fields{
+    log.Get().WithFields(logrus.Fields{
         "tools_count": len(tools),
         "session_id":  getSessionID(session),
     }).Info("MCP tools list served")
 }
 
 func handleToolExecution(rw http.ResponseWriter, r *http.Request, session *user.SessionState, toolName string) {
-    tool, exists := MCPToolsRegistry[toolName]
+    _, exists := MCPToolsRegistry[toolName]
     if !exists {
-        logger.WithField("tool_name", toolName).Error("MCP tool not found")
+        log.Get().WithField("tool_name", toolName).Error("MCP tool not found")
         http.Error(rw, fmt.Sprintf(`{"error":"tool_not_found","message":"Tool not found: %s"}`, toolName), http.StatusNotFound)
         return
     }
@@ -156,14 +158,14 @@ func handleToolExecution(rw http.ResponseWriter, r *http.Request, session *user.
     // Parse request body
     body, err := io.ReadAll(r.Body)
     if err != nil {
-        logger.WithError(err).Error("Failed to read MCP tool request body")
+        log.Get().WithError(err).Error("Failed to read MCP tool request body")
         http.Error(rw, `{"error":"invalid_request","message":"Failed to read request body"}`, http.StatusBadRequest)
         return
     }
     
     var params map[string]interface{}
     if err := json.Unmarshal(body, &params); err != nil {
-        logger.WithError(err).Error("Failed to parse MCP tool request JSON")
+        log.Get().WithError(err).Error("Failed to parse MCP tool request JSON")
         http.Error(rw, `{"error":"invalid_json","message":"Invalid JSON in request body"}`, http.StatusBadRequest)
         return
     }
@@ -171,7 +173,7 @@ func handleToolExecution(rw http.ResponseWriter, r *http.Request, session *user.
     // Execute the tool
     result, err := executeMCPTool(toolName, params, session)
     if err != nil {
-        logger.WithError(err).WithField("tool_name", toolName).Error("MCP tool execution failed")
+        log.Get().WithError(err).WithField("tool_name", toolName).Error("MCP tool execution failed")
         http.Error(rw, fmt.Sprintf(`{"error":"execution_failed","message":"%s"}`, err.Error()), http.StatusInternalServerError)
         return
     }
@@ -180,7 +182,7 @@ func handleToolExecution(rw http.ResponseWriter, r *http.Request, session *user.
     rw.WriteHeader(http.StatusOK)
     json.NewEncoder(rw).Encode(result)
     
-    logger.WithFields(logrus.Fields{
+    log.Get().WithFields(logrus.Fields{
         "tool_name":     toolName,
         "session_id":    getSessionID(session),
         "params_count":  len(params),
@@ -301,7 +303,7 @@ func getTykAnalytics(params map[string]interface{}, session *user.SessionState) 
         "timestamp": time.Now().Format(time.RFC3339),
     }
     
-    logger.WithFields(logrus.Fields{
+    log.Get().WithFields(logrus.Fields{
         "api_id":     apiID,
         "time_range": timeRange,
         "session_id": getSessionID(session),
@@ -349,7 +351,7 @@ func searchClaudeContext(params map[string]interface{}, session *user.SessionSta
         "timestamp": time.Now().Format(time.RFC3339),
     }
     
-    logger.WithFields(logrus.Fields{
+    log.Get().WithFields(logrus.Fields{
         "query":      query,
         "limit":      limit,
         "session_id": getSessionID(session),
@@ -358,6 +360,14 @@ func searchClaudeContext(params map[string]interface{}, session *user.SessionSta
     return mockResults, nil
 }
 
+// getSessionID generates a session identifier for logging
+func getSessionID(session *user.SessionState) string {
+    if session != nil {
+        return fmt.Sprintf("session_%p", session)
+    }
+    return "anonymous"
+}
+
 func init() {
-    logger.WithField("tools_count", len(MCPToolsRegistry)).Info("Tyk MCP Tools middleware loaded")
+    log.Get().WithField("tools_count", len(MCPToolsRegistry)).Info("Tyk MCP Tools middleware loaded")
 }
