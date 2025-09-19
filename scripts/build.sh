@@ -26,30 +26,61 @@ fi
 
 echo "✅ Environment variables validated"
 
+# Create GKE cluster
+echo "🏗️ Creating GKE cluster..."
+CLUSTER_NAME="tyk-mcp-cluster"
+ZONE="us-central1-a"
+
+# Check if cluster already exists
+if gcloud container clusters describe $CLUSTER_NAME --zone=$ZONE &>/dev/null; then
+    echo "📋 Cluster $CLUSTER_NAME already exists, using existing cluster"
+else
+    echo "🆕 Creating new GKE cluster: $CLUSTER_NAME"
+    gcloud container clusters create $CLUSTER_NAME \
+        --zone=$ZONE \
+        --num-nodes=3 \
+        --machine-type=e2-standard-2 \
+        --disk-size=50GB \
+        --enable-autorepair \
+        --enable-autoupgrade \
+        --enable-ip-alias \
+        --project=$PROJECT_ID
+fi
+
+# Get cluster credentials
+echo "🔐 Configuring kubectl for cluster access..."
+gcloud container clusters get-credentials $CLUSTER_NAME --zone=$ZONE --project=$PROJECT_ID
+
+# Verify cluster connection
+echo "📡 Verifying cluster connection..."
+kubectl cluster-info
+
+echo "✅ Cluster ready and configured"
+
 # Build Go plugins
 echo "🔨 Building Tyk Go plugins..."
 cd src/tyk-plugin
 chmod +x build.sh
 ./build.sh
 cd ../..
-
 echo "✅ Go plugins built successfully"
 
 # Build and push Docker images
 echo "🐳 Building and pushing Docker images..."
 
+# Configure Docker for GCR
+gcloud auth configure-docker --quiet
+
 # Build Tyk Gateway image
 docker build -f docker/Dockerfile.gateway -t tyk-gateway-mcp:latest .
 docker tag tyk-gateway-mcp:latest gcr.io/$PROJECT_ID/tyk-gateway-mcp:latest
 docker push gcr.io/$PROJECT_ID/tyk-gateway-mcp:latest
-
 echo "✅ Tyk Gateway image pushed"
 
 # Build Claude MCP Client image
 docker build -f docker/Dockerfile.mcp-client -t claude-mcp-client:latest .
 docker tag claude-mcp-client:latest gcr.io/$PROJECT_ID/claude-mcp-client:latest
 docker push gcr.io/$PROJECT_ID/claude-mcp-client:latest
-
 echo "✅ Claude MCP Client image pushed"
 
 # Create Kubernetes namespace
@@ -111,6 +142,7 @@ CLAUDE_IP=$(kubectl get svc claude-mcp-client -n tyk -o jsonpath='{.status.loadB
 echo ""
 echo "🎉 DEPLOYMENT COMPLETE!"
 echo "========================="
+echo "Cluster: $CLUSTER_NAME (zone: $ZONE)"
 echo "Tyk Gateway: http://$TYK_IP:8080"
 echo "Claude MCP Client: http://$CLAUDE_IP:8080"
 echo ""
@@ -121,4 +153,7 @@ echo ""
 echo "📊 Monitor with:"
 echo "kubectl get pods -n tyk"
 echo "kubectl logs deployment/tyk-gateway -n tyk"
+echo ""
+echo "🗑️ To cleanup:"
+echo "gcloud container clusters delete $CLUSTER_NAME --zone=$ZONE"
 echo ""
