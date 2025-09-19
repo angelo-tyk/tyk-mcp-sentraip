@@ -54,10 +54,12 @@ var (
     toolRegex = regexp.MustCompile(`tool:\s*(\w+)`)
 )
 
+func main() {}
+
 // TykOTELPreMiddleware handles request tracing setup
 func TykOTELPreMiddleware(rw http.ResponseWriter, r *http.Request) {
     // Start timing
-    ctx.SetContext(r, "request.start_time", strconv.FormatInt(time.Now().UnixNano(), 10))
+    r = r.WithContext(context.WithValue(r.Context(), "request.start_time", strconv.FormatInt(time.Now().UnixNano(), 10)))
     
     session := ctx.GetSession(r)
     spec := ctx.GetDefinition(r)
@@ -87,7 +89,7 @@ func TykOTELPreMiddleware(rw http.ResponseWriter, r *http.Request) {
         )
         
         // Set context for downstream processing
-        ctx.SetContext(r, "mcp.tool", mcpTool)
+        r = r.WithContext(context.WithValue(r.Context(), "mcp.tool", mcpTool))
     }
     
     // Claude AI specific tracing
@@ -110,7 +112,7 @@ func TykOTELPreMiddleware(rw http.ResponseWriter, r *http.Request) {
                     lastMessage := claudeReq.Messages[len(claudeReq.Messages)-1]
                     if matches := toolRegex.FindStringSubmatch(lastMessage.Content); len(matches) > 1 {
                         attrs = append(attrs, attribute.String("mcp.referenced_tool", matches[1]))
-                        ctx.SetContext(r, "mcp.referenced_tool", matches[1])
+                        r = r.WithContext(context.WithValue(r.Context(), "mcp.referenced_tool", matches[1]))
                     }
                 }
             } else {
@@ -134,7 +136,7 @@ func TykOTELPreMiddleware(rw http.ResponseWriter, r *http.Request) {
     // OAuth context
     if r.Header.Get("Authorization") != "" {
         attrs = append(attrs, attribute.Bool("oauth.token_present", true))
-        if tokenExpires := ctx.GetContextData(r, "oauth.token_expires"); tokenExpires != nil {
+        if tokenExpires := r.Context().Value("oauth.token_expires"); tokenExpires != nil {
             attrs = append(attrs, attribute.String("oauth.token_expires", tokenExpires.(string)))
         }
     }
@@ -143,13 +145,13 @@ func TykOTELPreMiddleware(rw http.ResponseWriter, r *http.Request) {
     span.SetAttributes(attrs...)
     
     // Store span in context for response middleware
-    ctx.SetContext(r, "otel.span", span)
+    r = r.WithContext(context.WithValue(r.Context(), "otel.span", span))
 }
 
 // TykOTELPostMiddleware handles response tracing
 func TykOTELPostMiddleware(rw http.ResponseWriter, r *http.Request, res *http.Response) {
     // Retrieve span from context
-    spanInterface := ctx.GetContextData(r, "otel.span")
+    spanInterface := r.Context().Value("otel.span")
     if spanInterface == nil {
         return
     }
@@ -161,7 +163,7 @@ func TykOTELPostMiddleware(rw http.ResponseWriter, r *http.Request, res *http.Re
     defer span.End()
     
     // Calculate request duration
-    startTimeStr := ctx.GetContextData(r, "request.start_time")
+    startTimeStr := r.Context().Value("request.start_time")
     var duration int64
     if startTimeStr != nil {
         if startTime, err := strconv.ParseInt(startTimeStr.(string), 10, 64); err == nil {
@@ -283,8 +285,9 @@ func getClientIP(r *http.Request) string {
 }
 
 func getSessionID(session *user.SessionState) string {
-    if session != nil && session.KeyID != "" {
-        return session.KeyID
+    if session != nil {
+        // Generate a generic session identifier using the pointer address
+        return fmt.Sprintf("session_%p", session)
     }
     return "anonymous"
 }
@@ -309,5 +312,5 @@ func getErrorDescription(statusCode int) string {
 }
 
 func init() {
-    logger.Info("Tyk OTEL Enhancer middleware loaded")
+    log.Get().Info("Tyk OTEL Enhancer middleware loaded")
 }
