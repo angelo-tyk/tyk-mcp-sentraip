@@ -31,8 +31,8 @@ RUN adduser -D -s /bin/sh appuser
 # Set working directory
 WORKDIR /app
 
-# Copy binary from builder
-COPY --from=builder /app/claude-mcp-client .
+# Copy binary from builder with execute permissions
+COPY --from=builder --chmod=755 /app/claude-mcp-client .
 
 # Change ownership
 RUN chown appuser:appuser /app/claude-mcp-client
