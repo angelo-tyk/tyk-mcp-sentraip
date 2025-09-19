@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/TykTechnologies/tyk/ctx"
@@ -48,12 +47,12 @@ func main() {}
 
 // MyPluginPre - Pre hook for OAuth authentication
 func (p *SentraIPOAuthPlugin) MyPluginPre(rw http.ResponseWriter, r *http.Request) {
-	log.Info("SentraIP OAuth Plugin: Pre hook triggered")
+	log.Get().Info("SentraIP OAuth Plugin: Pre hook triggered")
 	
 	// Get plugin configuration from context
 	config := p.getConfig(r)
 	if config == nil {
-		log.Error("SentraIP OAuth Plugin: Configuration not found")
+		log.Get().Error("SentraIP OAuth Plugin: Configuration not found")
 		http.Error(rw, "OAuth configuration error", http.StatusInternalServerError)
 		return
 	}
@@ -69,7 +68,7 @@ func (p *SentraIPOAuthPlugin) MyPluginPre(rw http.ResponseWriter, r *http.Reques
 	if session != nil {
 		if token, exists := session.MetaData["oauth_access_token"]; exists {
 			if p.validateToken(token.(string), config) {
-				log.Info("SentraIP OAuth Plugin: Valid token found")
+				log.Get().Info("SentraIP OAuth Plugin: Valid token found")
 				return
 			}
 		}
@@ -81,11 +80,11 @@ func (p *SentraIPOAuthPlugin) MyPluginPre(rw http.ResponseWriter, r *http.Reques
 
 // MyPluginAuth - Authentication hook
 func (p *SentraIPOAuthPlugin) MyPluginAuth(rw http.ResponseWriter, r *http.Request) {
-	log.Info("SentraIP OAuth Plugin: Auth hook triggered")
+	log.Get().Info("SentraIP OAuth Plugin: Auth hook triggered")
 	
 	session := ctx.GetSession(r)
 	if session == nil {
-		log.Error("SentraIP OAuth Plugin: No session found")
+		log.Get().Error("SentraIP OAuth Plugin: No session found")
 		http.Error(rw, "Authentication required", http.StatusUnauthorized)
 		return
 	}
@@ -93,14 +92,14 @@ func (p *SentraIPOAuthPlugin) MyPluginAuth(rw http.ResponseWriter, r *http.Reque
 	// Check for valid access token
 	token, exists := session.MetaData["oauth_access_token"]
 	if !exists {
-		log.Error("SentraIP OAuth Plugin: No access token in session")
+		log.Get().Error("SentraIP OAuth Plugin: No access token in session")
 		http.Error(rw, "Authentication required", http.StatusUnauthorized)
 		return
 	}
 
 	// Validate and use the token
 	if !p.validateToken(token.(string), p.getConfig(r)) {
-		log.Error("SentraIP OAuth Plugin: Invalid access token")
+		log.Get().Error("SentraIP OAuth Plugin: Invalid access token")
 		http.Error(rw, "Invalid token", http.StatusUnauthorized)
 		return
 	}
@@ -113,12 +112,12 @@ func (p *SentraIPOAuthPlugin) MyPluginAuth(rw http.ResponseWriter, r *http.Reque
 		r.Header.Set("X-SentraIP-Roles", strings.Join(userInfo.Roles, ","))
 	}
 
-	log.Info("SentraIP OAuth Plugin: Authentication successful")
+	log.Get().Info("SentraIP OAuth Plugin: Authentication successful")
 }
 
 // MyPluginPost - Post processing hook
 func (p *SentraIPOAuthPlugin) MyPluginPost(rw http.ResponseWriter, res *http.Response, req *http.Request) {
-	log.Info("SentraIP OAuth Plugin: Post hook triggered")
+	log.Get().Info("SentraIP OAuth Plugin: Post hook triggered")
 	
 	// Add security headers
 	res.Header.Set("X-SentraIP-Processed", "true")
@@ -141,7 +140,7 @@ func (p *SentraIPOAuthPlugin) getConfig(r *http.Request) *SentraIPConfig {
 
 // redirectToOAuth redirects user to OAuth provider
 func (p *SentraIPOAuthPlugin) redirectToOAuth(rw http.ResponseWriter, r *http.Request, config *SentraIPConfig) {
-	log.Info("SentraIP OAuth Plugin: Redirecting to OAuth provider")
+	log.Get().Info("SentraIP OAuth Plugin: Redirecting to OAuth provider")
 
 	oauthConfig := &oauth2.Config{
 		ClientID:     config.ClientID,
@@ -161,7 +160,8 @@ func (p *SentraIPOAuthPlugin) redirectToOAuth(rw http.ResponseWriter, r *http.Re
 	session := ctx.GetSession(r)
 	if session != nil && session.MetaData != nil {
 		session.MetaData["oauth_state"] = state
-		ctx.UpdateSession(r, session, 0, false)
+		// Store session back in context
+		ctx.SetSession(r, session, "", true)
 	}
 
 	authURL := oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
@@ -170,13 +170,13 @@ func (p *SentraIPOAuthPlugin) redirectToOAuth(rw http.ResponseWriter, r *http.Re
 
 // handleOAuthCallback processes the OAuth callback
 func (p *SentraIPOAuthPlugin) handleOAuthCallback(rw http.ResponseWriter, r *http.Request, config *SentraIPConfig, code string) {
-	log.Info("SentraIP OAuth Plugin: Handling OAuth callback")
+	log.Get().Info("SentraIP OAuth Plugin: Handling OAuth callback")
 
 	// Verify state parameter
 	state := r.URL.Query().Get("state")
 	session := ctx.GetSession(r)
 	if session == nil || session.MetaData["oauth_state"] != state {
-		log.Error("SentraIP OAuth Plugin: Invalid state parameter")
+		log.Get().Error("SentraIP OAuth Plugin: Invalid state parameter")
 		http.Error(rw, "Invalid state parameter", http.StatusBadRequest)
 		return
 	}
@@ -184,7 +184,7 @@ func (p *SentraIPOAuthPlugin) handleOAuthCallback(rw http.ResponseWriter, r *htt
 	// Exchange code for token
 	token, err := p.exchangeCodeForToken(code, config)
 	if err != nil {
-		log.WithError(err).Error("SentraIP OAuth Plugin: Failed to exchange code for token")
+		log.Get().WithError(err).Error("SentraIP OAuth Plugin: Failed to exchange code for token")
 		http.Error(rw, "Token exchange failed", http.StatusInternalServerError)
 		return
 	}
@@ -192,7 +192,7 @@ func (p *SentraIPOAuthPlugin) handleOAuthCallback(rw http.ResponseWriter, r *htt
 	// Get user information
 	userInfo, err := p.getUserInfo(token.AccessToken, config)
 	if err != nil {
-		log.WithError(err).Error("SentraIP OAuth Plugin: Failed to get user info")
+		log.Get().WithError(err).Error("SentraIP OAuth Plugin: Failed to get user info")
 		http.Error(rw, "Failed to get user info", http.StatusInternalServerError)
 		return
 	}
@@ -206,9 +206,9 @@ func (p *SentraIPOAuthPlugin) handleOAuthCallback(rw http.ResponseWriter, r *htt
 	session.MetaData["user_info"] = *userInfo
 
 	// Update session
-	ctx.UpdateSession(r, session, token.ExpiresIn, false)
+	ctx.SetSession(r, session, "", true)
 
-	log.Info("SentraIP OAuth Plugin: OAuth callback processed successfully")
+	log.Get().Info("SentraIP OAuth Plugin: OAuth callback processed successfully")
 	
 	// Redirect to original requested URL or default
 	originalURL := r.URL.Query().Get("redirect_uri")
@@ -220,7 +220,7 @@ func (p *SentraIPOAuthPlugin) handleOAuthCallback(rw http.ResponseWriter, r *htt
 
 // exchangeCodeForToken exchanges authorization code for access token
 func (p *SentraIPOAuthPlugin) exchangeCodeForToken(code string, config *SentraIPConfig) (*TokenResponse, error) {
-	log.Info("SentraIP OAuth Plugin: Exchanging code for token")
+	log.Get().Info("SentraIP OAuth Plugin: Exchanging code for token")
 
 	oauthConfig := &oauth2.Config{
 		ClientID:     config.ClientID,
@@ -247,12 +247,12 @@ func (p *SentraIPOAuthPlugin) exchangeCodeForToken(code string, config *SentraIP
 
 // validateToken validates the access token
 func (p *SentraIPOAuthPlugin) validateToken(token string, config *SentraIPConfig) bool {
-	log.Info("SentraIP OAuth Plugin: Validating token")
+	log.Get().Info("SentraIP OAuth Plugin: Validating token")
 
 	// Create request to validate token
 	req, err := http.NewRequest("GET", "https://auth.sentraip.com/oauth/validate", nil)
 	if err != nil {
-		log.WithError(err).Error("SentraIP OAuth Plugin: Failed to create validation request")
+		log.Get().WithError(err).Error("SentraIP OAuth Plugin: Failed to create validation request")
 		return false
 	}
 
@@ -261,7 +261,7 @@ func (p *SentraIPOAuthPlugin) validateToken(token string, config *SentraIPConfig
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.WithError(err).Error("SentraIP OAuth Plugin: Token validation request failed")
+		log.Get().WithError(err).Error("SentraIP OAuth Plugin: Token validation request failed")
 		return false
 	}
 	defer resp.Body.Close()
@@ -271,7 +271,7 @@ func (p *SentraIPOAuthPlugin) validateToken(token string, config *SentraIPConfig
 
 // getUserInfo retrieves user information using access token
 func (p *SentraIPOAuthPlugin) getUserInfo(token string, config *SentraIPConfig) (*UserInfo, error) {
-	log.Info("SentraIP OAuth Plugin: Getting user info")
+	log.Get().Info("SentraIP OAuth Plugin: Getting user info")
 
 	req, err := http.NewRequest("GET", "https://api.sentraip.com/user/profile", nil)
 	if err != nil {
@@ -308,7 +308,7 @@ func (p *SentraIPOAuthPlugin) generateState() string {
 
 // init function - required for Tyk plugins
 func init() {
-	log.WithFields(logrus.Fields{
+	log.Get().WithFields(logrus.Fields{
 		"plugin": "sentraip_oauth",
 		"version": "1.0.0",
 	}).Info("SentraIP OAuth Plugin initialized")
